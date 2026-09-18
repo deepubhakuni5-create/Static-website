@@ -1,57 +1,36 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    IMAGE = "shivsoftapp/static-site"
-    TAG = "latest"
-  }
-
-  stages {
-
-    stage('Checkout Code') {
-      steps {
-        git branch: 'main',
-            url: ' https://github.com/deepubhakuni5-create/Static-website.git'
-      }
-    }
-
-    stage('Build Docker Image') {
-      steps {
-        powershell "docker build -t ${IMAGE}:${TAG} ."
-      }
-    }
-
-    stage('Push to DockerHub') {
-      steps {
-        withCredentials([
-          usernamePassword(
-            credentialsId: 'dockerhub',
-            usernameVariable: 'DOCKER_USER',
-            passwordVariable: 'DOCKER_PASS'
-          )
-        ]) {
-          powershell 'echo $env:DOCKER_PASS | docker login -u $env:DOCKER_USER --password-stdin'
-          powershell "docker push ${IMAGE}:${TAG}"
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Pulling website code...'
+                git branch: 'main', url: 'https://github.com/shivnathyadav73/static-we...'
+            }
         }
-      }
-    }
 
-    stage('Deploy to Kubernetes') {
-      steps {
-        withCredentials([
-          file(credentialsId: 'kubeconfig_cred', variable: 'KCFG')
-        ]) {
-          powershell "(Get-Content k8s-deployment.yaml) -replace 'DOCKERHUB_USERNAME/static-site:latest', '${IMAGE}:${TAG}' | Set-Content k8s-deployment.yaml"
-          powershell "kubectl --kubeconfig=$env:KCFG apply -f k8s-deployment.yaml"
-          powershell "kubectl --kubeconfig=$env:KCFG rollout status deployment/static-site-deploy"
+        stage('Build Docker Image') {
+            steps {
+                powershell """
+                    docker build -t static-website:latest .
+                """
+            }
         }
-      }
-    }
-  }
 
-  post {
-    always {
-      powershell "docker logout || echo 'Logout failed but safe'"
+        stage('Run Container') {
+            steps {
+                powershell """
+                    docker stop static-web 2>\$null
+                    docker rm static-web 2>\$null
+                    docker run -d --name static-web -p 5553:80 static-website:latest
+                """
+            }
+        }
     }
-  }
+
+    post {
+        success {
+            echo "Website running at: http://localhost:5353"
+        }
+    }
 }
