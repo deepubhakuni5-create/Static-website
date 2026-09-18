@@ -5,7 +5,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo 'Pulling website code...'
-                git branch: 'main', url: 'https://github.com/shivnathyadav73/static-we...'
+                git branch: 'main', credentialsId: 'github-token', url: 'https://github.com/dedepubhakuni5/static-website1.git'
             }
         }
 
