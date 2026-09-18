@@ -5,8 +5,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo 'Pulling website code...'
-                git branch: 'main', credentialsId: 'github-token', url: 'https://github.com/dedepubhakuni5/static-website1.git'
-            }
+             
+        }git branch: 'main', credentialsId: '9469f846-43ca-4b97-805e-7a19023dace6', url: 'https://github.com/deepubhakuni5/static-website1.git'
         }
 
         stage('Build Docker Image') {
